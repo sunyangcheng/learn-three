@@ -1,6 +1,25 @@
 <template>
   <div class="home">
     <div class="canvas-container" ref="canvasDom"></div>
+
+    <div class="home-content">
+      <div class="home-content-title">
+        <h1>汽车展示与选配</h1>
+      </div>
+      <h2>选择车身颜色</h2>
+      <div class="select">
+        <div class="select-item" v-for="(item, index) in colors" @click="selectColor(index)">
+          <div class="select-item-color" :style="{backgroundColor: item}"></div>
+          <div class="select-item-text">{{item}}</div>
+        </div>
+      </div>
+      <h2>选择贴膜材质</h2>
+      <div class="select">
+        <div class="select-item" v-for="(item, index) in materials" @click="selectMaterial(index)">
+          <button class="select-item-btn">{{item.name}}</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -11,6 +30,8 @@ import { onMounted, reactive, ref } from 'vue';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 
 let controls;
 let canvasDom = ref(null);
@@ -30,6 +51,75 @@ const render = () => {
   renderer.render(scene, camera);
   controls && controls.update();
   requestAnimationFrame(render);
+}
+
+let wheels = [];
+let carBody, frontCar, hoodCar, glassCar;
+// 创建材质
+const bodyMaterial = new THREE.MeshPhysicalMaterial({
+  color: 0x0000ff,
+  metalness: 1,
+  roughness: 0.5,
+  clearcoat: 1,
+  clearcoatRoughness: 0,
+});
+
+const frontMaterial = new THREE.MeshPhysicalMaterial({
+  color: "gray",
+  metalness: 1,
+  roughness: 0.5,
+  clearcoat: 1,
+  clearcoatRoughness: 0,
+});
+
+const hoodMaterial = new THREE.MeshPhysicalMaterial({
+  color: "blue",
+  metalness: 1,
+  roughness: 0.5,
+  clearcoat: 1,
+  clearcoatRoughness: 0,
+});
+
+const wheelMaterial = new THREE.MeshPhysicalMaterial({
+  color: 0xffffff,
+  metalness: 1,
+  roughness: 0.5,
+  clearcoat: 1,
+  clearcoatRoughness: 0,
+});
+
+const glassMaterial = new THREE.MeshPhysicalMaterial({
+  color: 0xffffff,
+  transparent: true,
+  transmission: 1,
+  roughness: 0,
+  metalness: 0,
+});
+
+let colors = [
+  "red",
+  "purple",
+  "green",
+  "blue",
+  "black",
+  "white",
+  "gray",
+];
+
+let selectColor = (index) => {
+  bodyMaterial.color = new THREE.Color(colors[index]);
+  frontMaterial.color = new THREE.Color(colors[index]);
+  hoodMaterial.color = new THREE.Color(colors[index]);
+  glassMaterial.color = new THREE.Color(colors[index]);
+  wheelMaterial.color = new THREE.Color(colors[index]);
+};
+
+let materials = [{name: "磨砂", value: 0}, {name: "冰晶", value: 1}];
+
+let selectMaterial = (index) => {
+  bodyMaterial.clearcoatRoughness = materials[index].value;
+  frontMaterial.clearcoatRoughness = materials[index].value;
+  hoodMaterial.clearcoatRoughness = materials[index].value;
 }
 
 onMounted(() => {
@@ -58,12 +148,54 @@ onMounted(() => {
   loader.setDRACOLoader(dracoLoader);
   loader.load('./model/bmw01.glb', (gltf) => {
     const bmw = gltf.scene;
+    bmw.traverse((child) => {
+      if (child.isMesh) {
+        // console.log(child.name);
+      }
+      // 判断是否是轮毂
+      if (child.isMesh && child.name.includes('轮毂')) {
+        wheels.push(child);
+        wheels.forEach((wheel) => {
+          wheel.material = wheelMaterial;
+        });
+      }
+      // 判断是否是车身
+      if (child.isMesh && child.name.includes('Mesh002')) {
+        carBody = child;
+        carBody.material = bodyMaterial;
+      }
+      // 判断是否是前脸
+      if (child.isMesh && child.name.includes('前脸')) {
+        frontCar = child;
+        frontCar.material = frontMaterial;
+      }
+      // 判断是否是引擎盖
+      if (child.isMesh && child.name.includes('引擎盖_1')) {
+        hoodCar = child;
+        hoodCar.material = hoodMaterial;
+      }
+      // 判断是否是车窗
+      if (child.isMesh && child.name.includes('挡风玻璃')) {
+        glassCar = child;
+        glassCar.material = glassMaterial;
+      }
+
+    }),
     scene.add(bmw);
   });
 
+  // const objLoader = new OBJLoader(); // ob加载器i
+  // const mtlLoader = new MTLLoader(); // 材质文件加载器
+  // mtlLoader.load('./model/bugatti.mtl', (materials) => {
+  //   objLoader.setMaterials(materials);
+  //   objLoader.load('./model/bugatti.obj', (obj) => {
+  //     const car = obj;
+  //     // car.scale.set(-10, -10, -10);
+  //     scene.add(car);
+  //   });
+  // })
+
   // 添加灯光
-
-
   const light = new THREE.DirectionalLight(0xffffff, 1);
   light.position.set(0, 0, 10);
   scene.add(light);
@@ -100,5 +232,31 @@ onMounted(() => {
 * {
   margin: 0;
   padding: 0;
+}
+.home-content {
+  position: fixed;
+  top: 0;
+  right: 20px;
+}
+.select {
+  display: flex;
+}
+.select-item-color {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  display: inline-block;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+.select-item-btn {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+}
+.select-item-btn:first-child {
+  margin-right: 10px;
 }
 </style>
