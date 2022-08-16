@@ -1,0 +1,1 @@
+*{margin:0;padding:0}.home-content{position:fixed;top:0;right:20px}.select{display:flex}.select-item-color{width:50px;height:50px;border-radius:50%;background-color:#fff;border:1px solid #ccc;cursor:pointer;display:inline-block;margin-right:10px;margin-bottom:10px}.select-item-btn{padding:5px 10px;border:1px solid #ccc}.select-item-btn:first-child{margin-right:10px}
