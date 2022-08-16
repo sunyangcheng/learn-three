@@ -9,6 +9,8 @@
 import * as THREE from 'three'; 
 import { onMounted, reactive, ref } from 'vue';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 
 let controls;
 let canvasDom = ref(null);
@@ -48,6 +50,49 @@ onMounted(() => {
   // 添加控制器
   controls = new OrbitControls(camera, renderer.domElement);
   controls.update();
+
+  // 添加gltf汽车模型
+  const loader = new GLTFLoader();
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath('./draco/gltf/');
+  loader.setDRACOLoader(dracoLoader);
+  loader.load('./model/bmw01.glb', (gltf) => {
+    const bmw = gltf.scene;
+    scene.add(bmw);
+  });
+
+  // 添加灯光
+
+
+  const light = new THREE.DirectionalLight(0xffffff, 1);
+  light.position.set(0, 0, 10);
+  scene.add(light);
+  const light2 = new THREE.DirectionalLight(0xffffff, 1);
+  light2.position.set(0, 0, -10);
+  scene.add(light2);
+  const light3 = new THREE.DirectionalLight(0xffffff, 1);
+  light3.position.set(10, 0, 0);
+  scene.add(light3);
+  const light4 = new THREE.DirectionalLight(0xffffff, 1);
+  light4.position.set(-10, 0, 0);
+  scene.add(light4);
+  const light5 = new THREE.DirectionalLight(0xffffff, 1);
+  light5.position.set(0, 10, 0);
+  scene.add(light5);
+  const light6 = new THREE.DirectionalLight(0xffffff, 0.3);
+  light6.position.set(5, 10, 0);
+  scene.add(light6);
+  const light7 = new THREE.DirectionalLight(0xffffff, 0.3);
+  light7.position.set(0, 10, 5);
+  scene.add(light7);
+  const light8 = new THREE.DirectionalLight(0xffffff, 0.3);
+  light8.position.set(0, 10, -5);
+  scene.add(light8);
+  const light9 = new THREE.DirectionalLight(0xffffff, 0.3);
+  light9.position.set(-5, 10, 0);
+  scene.add(light9);
+
+
 });
 </script>
 
